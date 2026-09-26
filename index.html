@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TOP-BDT-EARNING</title>
+<style>
+*{box-sizing:border-box;font-family:sans-serif}body{margin:0;background:#f1f5f9}
+.header{background:#00b894;color:#fff;padding:15px;border-radius:0 0 20px 20px}
+.card{background:#fff;margin:12px;border-radius:16px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:14px;text-align:center;position:relative}
+.item.off{opacity:.4}.item.active{border-color:#00b894}
+.lock{position:absolute;right:5px;top:5px;background:#ef4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:10px}
+input{width:100%;padding:12px;margin:6px 0;border:1px solid #ddd;border-radius:10px}
+button{width:100%;padding:12px;background:#00b894;color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="auth" class="card" style="max-width:400px;margin:40px auto">
+<h2 style="text-align:center">TOP-BDT-EARNING</h2>
+<input id="name" placeholder="আসল নাম">
+<input id="mobile" placeholder="মোবাইল নম্বর">
+<input id="pass" type="password" placeholder="পাসওয়ার্ড (৬ সংখ্যা)">
+<button onclick="register()">নিবন্ধন / লগইন</button>
+<p style="font-size:12px;text-align:center;color:gray">রেফার লিংক থেকে এলে অটো রেফার হবে</p>
+</div>
+
+<div id="dash" class="hidden">
+<div class="header">
+<div style="display:flex;justify-content:space-between"><b id="uName"></b><span>৳<b id="bal">0</b></span></div>
+<p style="margin:5px 0">ID: <span id="uId"></span> | Mobile: <span id="uMob"></span></p>
+</div>
+
+<div class="card"><b>সাইটের বয়স: Live</b><div id="age"></div></div>
+
+<div class="card">
+<b>আমাদের প্রজেক্ট সমূহ</b>
+<div class="grid" style="margin-top:10px">
+<div class="item active" onclick="fbSell()"><div>📘</div>Facebook Service 1<br><small>3.50৳</small></div>
+<div class="item off"><div>📘</div>Facebook Service 2<div class="lock">OFF</div></div>
+<div class="item active" onclick="gmailSell()"><div>✉️</div>Gmail Sell<br><small>10৳</small></div>
+<div class="item off"><div>📸</div>Instagram<div class="lock">2.50 OFF</div></div>
+<div class="item active" onclick="dailyClaim()"><div>🎁</div>Daily Commission<br><small>Claim</small></div>
+<div class="item active" onclick="refInfo()"><div>👥</div>Reffer Bonus<br><small>20৳</small></div>
+<div class="item off"><div>⌨️</div>Typing Job<div class="lock">OFF</div></div>
+<div class="item off"><div>🎰</div>Slot Unlock<div class="lock">OFF</div></div>
+</div>
+</div>
+
+<div class="card">
+<b>💳 উত্তোলন (৫৫ / ১১৫ / ৫২৫)</b>
+<select id="wAmount"><option value="55">55 টাকা</option><option value="115">115 টাকা</option><option value="525">525 টাকা</option></select>
+<select id="wMethod"><option>bKash</option><option>Nagad</option><option>Rocket</option><option>Upay</option></select>
+<input id="wNumber" placeholder="যে নম্বরে টাকা নিবেন">
+<button onclick="withdrawReq()">উত্তোলন রিকোয়েস্ট</button>
+<p id="wMsg" style="color:green;font-size:13px"></p>
+</div>
+
+<div class="card">
+<b>🔗 আপনার রেফার লিংক</b>
+<input id="refLink" readonly>
+<button onclick="copyRef()" style="background:#0f172a">কপি করুন</button>
+<p style="font-size:12px">রেফার থেকে ৩ টা Gmail Sell হলে ২০ টাকা পাবেন (Daily Commission থেকে Claim)</p>
+</div>
+
+<div style="text-align:center;padding:20px"><button onclick="logout()" style="background:#ef4444;width:150px">লগআউট</button></div>
+</div>
+
+<script>
+let users=JSON.parse(localStorage.getItem('top_users')||'[]');
+let curId=localStorage.getItem('top_cur');
+function getRefFromUrl(){let p=new URLSearchParams(location.search); return p.get('ref');}
+function register(){
+ let name=document.getElementById('name').value.trim(), mob=document.getElementById('mobile').value.trim(), pass=document.getElementById('pass').value.trim();
+ if(!name||!mob||pass.length<6) return alert("নাম, মোবাইল ও ৬ সংখ্যার পাসওয়ার্ড দিন");
+ let existing=users.find(u=>u.mobile==mob);
+ if(existing){ if(existing.pass!=pass) return alert("পাসওয়ার্ড ভুল"); curId=existing.id; }
+ else {
+   let refBy=getRefFromUrl();
+   let newUser={id:users.length+1,name:name,mobile:mob,pass:pass,bal:0,refBy:refBy?parseInt(refBy):null,gmailCount:0,refClaimed:false};
+   users.push(newUser); curId=newUser.id;
+ }
+ localStorage.setItem('top_users',JSON.stringify(users)); localStorage.setItem('top_cur',curId); showDash();
+}
+function showDash(){
+ let u=users.find(x=>x.id==curId); if(!u) return;
+ document.getElementById('auth').classList.add('hidden'); document.getElementById('dash').classList.remove('hidden');
+ document.getElementById('uName').innerText=u.name; document.getElementById('uMob').innerText=u.mobile;
+ document.getElementById('uId').innerText=u.id; document.getElementById('bal').innerText=u.bal;
+ document.getElementById('refLink').value=location.origin+location.pathname+"?ref="+u.id;
+}
+function gmailSell(){
+ let email=prompt("Gmail Address দিন:"), pass=prompt("Gmail Password দিন:");
+ if(!email||!pass) return;
+ let reqs=JSON.parse(localStorage.getItem('gmail_reqs')||'[]');
+ reqs.push({id:Date.now(),userId:curId,email:email,pass:pass,status:'pending',rate:10}); localStorage.setItem('gmail_reqs',JSON.stringify(reqs));
+ alert("Gmail জমা হয়েছে! এডমিন চেক করে Paid করবে।");
+}
+function fbSell(){
+ let link=prompt("Facebook Link / Email দিন:"), pass=prompt("Password দিন:");
+ if(!link) return;
+ let reqs=JSON.parse(localStorage.getItem('fb_reqs')||'[]');
+ reqs.push({id:Date.now(),userId:curId,data:link,pass:pass,status:'pending',rate:3.5}); localStorage.setItem('fb_reqs',JSON.stringify(reqs));
+ alert("Facebook Service 1 জমা হয়েছে!");
+}
+function withdrawReq(){
+ let amt=document.getElementById('wAmount').value, method=document.getElementById('wMethod').value, num=document.getElementById('wNumber').value;
+ let u=users.find(x=>x.id==curId); if(u.bal<parseInt(amt)) return alert("ব্যালেন্স কম! মিনিমাম "+amt+" লাগবে");
+ let w=JSON.parse(localStorage.getItem('withdraw_reqs')||'[]');
+ w.push({id:Date.now(),userId:curId,amount:amt,method:method,number:num,status:'pending'});
+ localStorage.setItem('withdraw_reqs',JSON.stringify(w)); document.getElementById('wMsg').innerText="উত্তোলন রিকোয়েস্ট পাঠানো হয়েছে!";
+}
+function dailyClaim(){
+ let u=users.find(x=>x.id==curId);
+ let myRefs=users.filter(x=>x.refBy==curId && x.gmailCount>=3);
+ if(myRefs.length==0) return alert("আপনার রেফারে এখনো কেউ ৩ টা Gmail Sell করেনি");
+ if(u.refClaimed) return alert("আপনি ইতিমধ্যে ক্লেম করেছেন, নতুন রেফার লাগবে");
+ let count=myRefs.length; u.bal+=20*count; u.refClaimed=true;
+ localStorage.setItem('top_users',JSON.stringify(users)); document.getElementById('bal').innerText=u.bal;
+ alert(count+" জন রেফার থেকে "+(20*count)+" টাকা পেয়েছেন!");
+}
+function refInfo(){alert("রেফার লিংক শেয়ার করুন। কেউ ৩ টা Gmail Sell করলে Daily Commission থেকে ২০ টাকা Claim করুন");}
+function copyRef(){navigator.clipboard.writeText(document.getElementById('refLink').value); alert("কপি হয়েছে!");}
+function logout(){localStorage.removeItem('top_cur'); location.reload();}
+window.onload=()=>{if(curId){ curId=parseInt(curId); showDash(); }}
+</script>
+</body>
+  </html>
