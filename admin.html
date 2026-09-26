@@ -1,0 +1,19 @@
+<h2>Admin Login</h2>
+<input id="aUser" placeholder="admin"><input id="aPass" type="password" placeholder="123456">
+<button onclick="login()">Login</button>
+<script>
+function login(){ if(aUser.value=='admin' && aPass.value=='123456'){ localStorage.setItem('isAdmin','1'); location.reload(); } }
+if(localStorage.getItem('isAdmin')){
+ document.body.innerHTML=`<h2>TOP-BDT-EARNING - Owner Panel</h2>
+ <p>Total Users: <b id="tu"></b></p>
+ <div id="gmail"></div><div id="fb"></div><div id="wd"></div>`;
+ let users=JSON.parse(localStorage.getItem('top_users')||'[]'); document.getElementById('tu').innerText=users.length;
+ let g=JSON.parse(localStorage.getItem('gmail_reqs')||'[]');
+ document.getElementById('gmail').innerHTML='<h3>Gmail Requests</h3>'+g.map(r=>`${r.email} - ${r.status} <button onclick="approveGmail(${r.id})">Paid (10৳)</button>`).join('<br>');
+ window.approveGmail=(id)=>{
+  let reqs=JSON.parse(localStorage.getItem('gmail_reqs')||'[]'); let r=reqs.find(x=>x.id==id); r.status='paid';
+  let users=JSON.parse(localStorage.getItem('top_users')||'[]'); let u=users.find(x=>x.id==r.userId); u.bal+=10; u.gmailCount++;
+  localStorage.setItem('gmail_reqs',JSON.stringify(reqs)); localStorage.setItem('top_users',JSON.stringify(users)); location.reload();
+ }
+}
+  </script>
